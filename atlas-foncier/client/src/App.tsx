@@ -21,7 +21,7 @@ export default function App() {
           <span className="font-medium text-foreground">13e arrondissement</span>
         </nav>
         <Badge variant="outline" className="ml-auto">
-          Données de démo
+          Cadastre + BDNB réels · PLU à venir
         </Badge>
       </header>
 

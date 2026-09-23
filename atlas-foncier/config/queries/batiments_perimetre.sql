@@ -1,7 +1,10 @@
 -- Bâtiments du périmètre de démonstration (Paris 13e, îlots Chevaleret - Tolbiac).
--- Colonnes géométrie/commune réelles (Chantier 1). Colonnes issues de BDNB/PLU
--- (hauteur_m, dpe_classe, plafond_hauteur_m, sdp_residuelle_m2, ...) sont NULL
--- tant que ces sources ne sont pas branchées dans workspace.gold.batiments_plu.
+-- Géométrie/commune : cadastre réel (Chantier 1). Colonnes BDNB (adresse, hauteur_m,
+-- dpe_classe, ges_classe, annee_construction, nombre_logements, type_batiment,
+-- emprise_au_sol_m2) : réelles pour les bâtiments matchés (~88% du périmètre) via
+-- un rapprochement spatial cadastre <-> BDNB, NULL sinon (pas de correspondance).
+-- Colonnes PLU (zone_plu, plafond_hauteur_m, sdp_residuelle_m2) : NULL tant que
+-- le zonage PLU structuré n'est pas branché (Chantier 2).
 SELECT
   batiment_groupe_id,
   commune_insee,
@@ -11,8 +14,11 @@ SELECT
   adresse,
   hauteur_m,
   dpe_classe,
-  conso_kwh_m2_an,
-  sdp_existante_m2,
+  ges_classe,
+  annee_construction,
+  nombre_logements,
+  type_batiment,
+  emprise_au_sol_m2,
   zone_plu,
   plafond_hauteur_m,
   sdp_residuelle_m2

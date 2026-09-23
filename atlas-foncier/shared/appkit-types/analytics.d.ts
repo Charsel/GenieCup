@@ -21,14 +21,20 @@ declare module "@databricks/appkit-ui/react" {
           geometry_geojson: string;
           /** @sqlType STRING */
           adresse: string;
-          /** @sqlType DOUBLE */
+          /** @sqlType BIGINT */
           hauteur_m: number;
           /** @sqlType STRING */
           dpe_classe: string;
+          /** @sqlType STRING */
+          ges_classe: string;
+          /** @sqlType STRING */
+          annee_construction: string;
+          /** @sqlType BIGINT */
+          nombre_logements: number;
+          /** @sqlType STRING */
+          type_batiment: string;
           /** @sqlType DOUBLE */
-          conso_kwh_m2_an: number;
-          /** @sqlType DOUBLE */
-          sdp_existante_m2: number;
+          emprise_au_sol_m2: number;
           /** @sqlType STRING */
           zone_plu: string;
           /** @sqlType DOUBLE */

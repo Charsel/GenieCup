@@ -104,11 +104,20 @@ AppKit (TypeScript/React) : écran carte, fiche parcelle à 4 onglets, chat
   3 parcelles d'exemple, SQL généré affiché), clairement marqué comme
   provisoire en attendant le Supervisor Agent (Chantier 3).
 - `databricks apps validate` passe (lint, typecheck, build, tests).
+- **Déployée** sur `dbc-1006` : https://atlas-foncier-7474647672785709.aws.databricksapps.com
+  (app Databricks `atlas-foncier`, état RUNNING).
 
-**Reste à faire** : déployer (demande confirmation avant tout déploiement),
-puis brancher progressivement les vraies données/agents au fur et à mesure
-des autres chantiers (Chantier 1 pour BDNB, Chantier 3 pour le chat,
-Chantier 4 pour la génération).
+**Point d'attention pour la suite** : les apps Databricks exécutent les
+requêtes analytics avec leur propre service principal, pas avec l'identité
+du développeur. Le premier déploiement a échoué avec
+`INSUFFICIENT_PERMISSIONS` sur `workspace.gold` tant que ce principal n'a
+pas reçu `USE CATALOG` sur `workspace`, `USE SCHEMA` sur `workspace.gold` et
+`SELECT` sur `workspace.gold.batiments_plu`. À refaire pour chaque nouvelle
+table/vue que l'app doit lire (ex. une fois `workspace.bdnb` branché).
+
+**Reste à faire** : brancher progressivement les vraies données/agents au
+fur et à mesure des autres chantiers (Chantier 1 pour BDNB, Chantier 3 pour
+le chat, Chantier 4 pour la génération).
 
 ## Dépendances et séquencement
 

@@ -17,7 +17,10 @@ import {
 } from '@databricks/appkit-ui/react';
 import { Building2 } from 'lucide-react';
 import type { BuildingRow } from './MapView';
-import { DEMO_BUILDINGS, computeSurelevationM2, isPassoireThermique } from '../lib/demoAttributes';
+
+function isPassoireThermique(dpe: string | null): boolean {
+  return dpe === 'F' || dpe === 'G';
+}
 
 export function ParcelSheet({
   row,
@@ -26,41 +29,35 @@ export function ParcelSheet({
   row: BuildingRow | null;
   onOpenChange: (open: boolean) => void;
 }) {
-  const demo = row ? DEMO_BUILDINGS[row.batiment_groupe_id] : undefined;
+  const matched = !!row?.adresse;
 
   return (
     <Sheet open={!!row} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full overflow-y-auto sm:max-w-lg">
+      <SheetContent side="right" className="w-full overflow-y-auto p-6 sm:max-w-lg">
         {row && (
           <>
             <SheetHeader>
-              <SheetTitle>{demo?.adresse ?? `Bâtiment ${row.batiment_groupe_id}`}</SheetTitle>
+              <SheetTitle>{row.adresse ?? `Bâtiment ${row.batiment_groupe_id}`}</SheetTitle>
               <SheetDescription>
                 Parcelle cadastrale {row.batiment_groupe_id} · {row.commune_insee}
               </SheetDescription>
-              {!demo && (
-                <Badge variant="outline" className="w-fit">
-                  Fiche non disponible — BDNB pas encore branché
-                </Badge>
-              )}
-              {demo && (
-                <Badge variant="secondary" className="w-fit">
-                  Exemple illustratif — données de démonstration
-                </Badge>
-              )}
+              <Badge variant={matched ? 'secondary' : 'outline'} className="w-fit">
+                {matched ? 'BDNB' : 'Pas de correspondance BDNB'}
+              </Badge>
             </SheetHeader>
 
-            {!demo ? (
+            {!matched ? (
               <Empty className="mt-6">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
                     <Building2 className="h-6 w-6" />
                   </EmptyMedia>
-                  <EmptyTitle>Pas encore de données pour ce bâtiment</EmptyTitle>
+                  <EmptyTitle>Pas de correspondance BDNB pour ce bâtiment</EmptyTitle>
                   <EmptyDescription>
-                    Ce bâtiment vient du cadastre réel (Chantier 1), mais ses attributs BDNB/PLU
-                    (hauteur, DPE, capacité) ne sont pas encore branchés. Trois parcelles
-                    d&rsquo;exemple sur la carte montrent le rendu final attendu.
+                    Ce bâtiment vient du cadastre réel (Chantier 1). Le rapprochement spatial
+                    avec la BDNB (Chantier 1) n&rsquo;a trouvé aucune correspondance à moins de
+                    ~25 m — environ 12% des bâtiments du périmètre sont dans ce cas (annexes,
+                    cours, décalage de digitalisation entre les deux sources).
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>
@@ -74,41 +71,60 @@ export function ParcelSheet({
                 </TabsList>
 
                 <TabsContent value="bdnb" className="space-y-3 pt-4 text-sm">
-                  <Fact label="Adresse" value={demo.adresse} />
-                  <Fact label="Usage" value={demo.usage} />
-                  <Fact label="Hauteur actuelle" value={`${demo.hauteur_m} m`} />
+                  <Fact label="Adresse" value={row.adresse ?? '—'} />
+                  <Fact label="Type de bâtiment" value={row.type_batiment ?? '—'} />
+                  <Fact label="Année de construction" value={row.annee_construction ?? '—'} />
+                  <Fact label="Hauteur" value={row.hauteur_m != null ? `${row.hauteur_m} m` : '—'} />
                   <Fact
                     label="DPE"
-                    value={demo.dpe_classe}
-                    badge={isPassoireThermique(demo.dpe_classe) ? 'destructive' : undefined}
+                    value={row.dpe_classe ?? 'Non renseigné'}
+                    badge={row.dpe_classe ? (isPassoireThermique(row.dpe_classe) ? 'destructive' : 'secondary') : undefined}
                   />
-                  <Fact label="Consommation" value={`${demo.conso_kwh_m2_an} kWh/m²/an`} />
-                  <Fact label="Surface de plancher existante" value={`${demo.sdp_existante_m2.toLocaleString('fr-FR')} m²`} />
+                  <Fact label="Classe GES" value={row.ges_classe ?? 'Non renseigné'} />
+                  <Fact label="Logements" value={row.nombre_logements ?? 0} />
+                  <Fact
+                    label="Emprise au sol"
+                    value={row.emprise_au_sol_m2 != null ? `${row.emprise_au_sol_m2.toLocaleString('fr-FR')} m²` : '—'}
+                  />
                 </TabsContent>
 
-                <TabsContent value="plu" className="space-y-3 pt-4 text-sm">
-                  <Fact label="Zone PLU" value={demo.zone_plu} />
-                  <Fact label="Plafond de hauteur" value={`${demo.plafond_hauteur_m} m`} />
-                  <Fact
-                    label="Marge de hauteur"
-                    value={`${(demo.plafond_hauteur_m - demo.hauteur_m).toFixed(1)} m`}
-                  />
-                  <p className="text-muted-foreground">
-                    Règlement de zone complet : à brancher sur l&rsquo;index Vector Search PLU
-                    (Chantier 2) une fois les documents indexés.
-                  </p>
+                <TabsContent value="plu" className="pt-4 text-sm">
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <Building2 className="h-6 w-6" />
+                      </EmptyMedia>
+                      <EmptyTitle>Zonage PLU pas encore branché</EmptyTitle>
+                      <EmptyDescription>
+                        Le règlement de zone (secteur de hauteur, plafond, emprise autorisée)
+                        arrivera avec l&rsquo;index Vector Search sur les documents PLU
+                        (Chantier 2).
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </TabsContent>
 
                 <TabsContent value="cap" className="space-y-3 pt-4 text-sm">
-                  <Fact label="Emprise au sol" value={`${demo.emprise_m2.toLocaleString('fr-FR')} m²`} />
-                  <Fact label="Niveaux actuels / max" value={`${demo.niveaux} / ${demo.niveaux_max}`} />
-                  <div className="rounded-md bg-muted p-3 font-mono text-xs leading-relaxed">
-                    Emprise {demo.emprise_m2} m² × ({demo.niveaux_max} − {demo.niveaux}) niveaux × 0,88
-                    <br />= {computeSurelevationM2(demo).toLocaleString('fr-FR')} m² en surélévation
-                  </div>
+                  <Fact label="Hauteur actuelle" value={row.hauteur_m != null ? `${row.hauteur_m} m` : '—'} />
+                  <Fact
+                    label="Emprise au sol"
+                    value={row.emprise_au_sol_m2 != null ? `${row.emprise_au_sol_m2.toLocaleString('fr-FR')} m²` : '—'}
+                  />
+                  <Empty>
+                    <EmptyHeader>
+                      <EmptyMedia variant="icon">
+                        <Building2 className="h-6 w-6" />
+                      </EmptyMedia>
+                      <EmptyTitle>Capacité constructible pas encore calculable</EmptyTitle>
+                      <EmptyDescription>
+                        Le calcul (surélévation, démolition-reconstruction) a besoin du plafond
+                        de hauteur PLU, pas encore branché (Chantier 2).
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
                 </TabsContent>
 
-                <TabsContent value="gen" className="space-y-3 pt-4 text-sm">
+                <TabsContent value="gen" className="pt-4 text-sm">
                   <Empty>
                     <EmptyHeader>
                       <EmptyMedia variant="icon">
@@ -116,8 +132,9 @@ export function ParcelSheet({
                       </EmptyMedia>
                       <EmptyTitle>Rendu génératif pas encore branché</EmptyTitle>
                       <EmptyDescription>
-                        L&rsquo;endpoint Model Serving (Chantier 4) générera ici un rendu du volume
-                        constructible à partir d&rsquo;un prompt dérivé de la BDNB et du PLU.
+                        L&rsquo;endpoint Model Serving (Chantier 4) générera ici un rendu du
+                        volume constructible à partir d&rsquo;un prompt dérivé de la BDNB et du
+                        PLU.
                       </EmptyDescription>
                     </EmptyHeader>
                   </Empty>

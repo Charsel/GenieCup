@@ -1,5 +1,4 @@
 import type { QueryRegistry } from '@databricks/appkit-ui/react';
-import { DEMO_BUILDINGS } from './demoAttributes';
 
 export type MapLayerKey = 'usage' | 'dpe' | 'potentiel';
 
@@ -9,9 +8,10 @@ const NEUTRAL_FILL = '#c7c9d9';
 const NEUTRAL_STROKE = '#8b8ea3';
 
 const USAGE_COLORS: Record<string, string> = {
-  'Logement + commerce en RDC': '#4462c9',
-  Bureaux: '#8a5fc9',
-  'Activité / entrepôt': '#c98a3f',
+  'Résidentiel collectif': '#4462c9',
+  'Résidentiel individuel': '#6a8fe0',
+  'Tertiaire & Autres': '#8a5fc9',
+  'Indifférencié': '#c98a3f',
 };
 
 const DPE_COLORS: Record<string, string> = {
@@ -25,39 +25,32 @@ const DPE_COLORS: Record<string, string> = {
 };
 
 export function fillFor(row: BuildingRow, layer: MapLayerKey): { fill: string; stroke: string } {
-  const demo = DEMO_BUILDINGS[row.batiment_groupe_id];
-  if (!demo) return { fill: NEUTRAL_FILL, stroke: NEUTRAL_STROKE };
-
   if (layer === 'usage') {
-    return { fill: USAGE_COLORS[demo.usage] ?? NEUTRAL_FILL, stroke: '#1f1e29' };
+    if (!row.type_batiment) return { fill: NEUTRAL_FILL, stroke: NEUTRAL_STROKE };
+    return { fill: USAGE_COLORS[row.type_batiment] ?? NEUTRAL_FILL, stroke: '#1f1e29' };
   }
   if (layer === 'dpe') {
-    return { fill: DPE_COLORS[demo.dpe_classe] ?? NEUTRAL_FILL, stroke: '#1f1e29' };
+    if (!row.dpe_classe) return { fill: NEUTRAL_FILL, stroke: NEUTRAL_STROKE };
+    return { fill: DPE_COLORS[row.dpe_classe] ?? NEUTRAL_FILL, stroke: '#1f1e29' };
   }
-  const headroom = demo.plafond_hauteur_m - demo.hauteur_m;
-  const fill = headroom >= 8 ? '#c8553d' : headroom >= 4 ? '#e7a48c' : '#f2d5c9';
-  return { fill, stroke: '#1f1e29' };
+  // potentiel : nécessite le plafond de hauteur PLU (Chantier 2), pas encore disponible
+  return { fill: NEUTRAL_FILL, stroke: NEUTRAL_STROKE };
 }
 
 const LEGENDS: Record<MapLayerKey, Array<{ color: string; label: string }>> = {
   usage: [
-    { color: USAGE_COLORS['Logement + commerce en RDC'], label: 'Logement + commerce' },
-    { color: USAGE_COLORS.Bureaux, label: 'Bureaux' },
-    { color: USAGE_COLORS['Activité / entrepôt'], label: 'Activité / entrepôt' },
-    { color: NEUTRAL_FILL, label: 'Donnée non disponible (BDNB à venir)' },
+    { color: USAGE_COLORS['Résidentiel collectif'], label: 'Résidentiel collectif' },
+    { color: USAGE_COLORS['Résidentiel individuel'], label: 'Résidentiel individuel' },
+    { color: USAGE_COLORS['Tertiaire & Autres'], label: 'Tertiaire & Autres' },
+    { color: NEUTRAL_FILL, label: 'Pas de correspondance BDNB' },
   ],
   dpe: [
-    { color: DPE_COLORS.D, label: 'DPE D' },
-    { color: DPE_COLORS.F, label: 'DPE F' },
+    { color: DPE_COLORS.C, label: 'DPE C' },
+    { color: DPE_COLORS.E, label: 'DPE E' },
     { color: DPE_COLORS.G, label: 'DPE G (passoire)' },
-    { color: NEUTRAL_FILL, label: 'Donnée non disponible (BDNB à venir)' },
+    { color: NEUTRAL_FILL, label: 'DPE inconnu ou pas de correspondance BDNB' },
   ],
-  potentiel: [
-    { color: '#c8553d', label: 'Fort potentiel (surélévation > 8 m)' },
-    { color: '#e7a48c', label: 'Potentiel moyen' },
-    { color: '#f2d5c9', label: 'Potentiel faible' },
-    { color: NEUTRAL_FILL, label: 'Donnée non disponible (BDNB/PLU à venir)' },
-  ],
+  potentiel: [{ color: NEUTRAL_FILL, label: 'Nécessite le PLU (Chantier 2), pas encore disponible' }],
 };
 
 export function mapLayerLegend(layer: MapLayerKey) {

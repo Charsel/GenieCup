@@ -1,8 +1,11 @@
 import { Card, CardHeader, CardTitle, CardContent, Badge, Skeleton, useAnalyticsQuery } from '@databricks/appkit-ui/react';
-import { DEMO_BUILDINGS } from '../lib/demoAttributes';
 
 export function PerimeterSummary() {
   const { data, loading, error } = useAnalyticsQuery('batiments_perimetre', {});
+
+  const total = data?.length ?? 0;
+  const matched = data?.filter((r) => !!r.adresse).length ?? 0;
+  const passoires = data?.filter((r) => r.dpe_classe === 'F' || r.dpe_classe === 'G').length ?? 0;
 
   return (
     <Card>
@@ -15,9 +18,9 @@ export function PerimeterSummary() {
         {error && <p className="text-sm text-destructive">Erreur : {error}</p>}
         {!loading && !error && (
           <div className="grid grid-cols-3 gap-2 text-center">
-            <Stat value={data?.length ?? 0} label="bâtiments" />
-            <Stat value="—" label="mutables" note="BDNB requis" />
-            <Stat value="—" label="m² à créer" note="BDNB requis" />
+            <Stat value={total} label="bâtiments" />
+            <Stat value={matched} label="avec BDNB" note={`${total ? Math.round((100 * matched) / total) : 0}%`} />
+            <Stat value={passoires} label="passoires (F/G)" />
           </div>
         )}
 
@@ -30,14 +33,17 @@ export function PerimeterSummary() {
               workspace.cadastre.batiments
             </Badge>
             <Badge variant="outline" className="font-mono text-[11px]">
+              workspace.bdnb.batiments
+            </Badge>
+            <Badge variant="outline" className="font-mono text-[11px]">
               workspace.gold.batiments_plu
             </Badge>
           </div>
         </div>
 
         <p className="text-xs text-muted-foreground">
-          {Object.keys(DEMO_BUILDINGS).length} parcelle(s) affichent des attributs d&rsquo;exemple ;
-          les autres attendent le branchement BDNB (Chantier 1) et PLU (Chantier 2).
+          Adresse/hauteur/DPE réels via rapprochement spatial cadastre ↔ BDNB. Zonage PLU
+          (plafond de hauteur, m² à créer) en attente du Chantier 2.
         </p>
       </CardContent>
     </Card>
