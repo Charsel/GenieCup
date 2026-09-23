@@ -8,40 +8,7 @@ declare module "@databricks/appkit-ui/react" {
     batiments_perimetre: {
         name: "batiments_perimetre";
         parameters: Record<string, never>;
-        result: Array<{
-          /** @sqlType STRING */
-          batiment_groupe_id: string;
-          /** @sqlType STRING */
-          commune_insee: string;
-          /** @sqlType DOUBLE */
-          centroid_lon: number;
-          /** @sqlType DOUBLE */
-          centroid_lat: number;
-          /** @sqlType STRING */
-          geometry_geojson: string;
-          /** @sqlType STRING */
-          adresse: string;
-          /** @sqlType BIGINT */
-          hauteur_m: number;
-          /** @sqlType STRING */
-          dpe_classe: string;
-          /** @sqlType STRING */
-          ges_classe: string;
-          /** @sqlType STRING */
-          annee_construction: string;
-          /** @sqlType BIGINT */
-          nombre_logements: number;
-          /** @sqlType STRING */
-          type_batiment: string;
-          /** @sqlType DOUBLE */
-          emprise_au_sol_m2: number;
-          /** @sqlType STRING */
-          zone_plu: string;
-          /** @sqlType DOUBLE */
-          plafond_hauteur_m: number;
-          /** @sqlType DOUBLE */
-          sdp_residuelle_m2: number;
-        }>;
+        result: unknown;
       };
   }
 }

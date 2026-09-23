@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createApp, analytics, server } from '@databricks/appkit';
 
 createApp({

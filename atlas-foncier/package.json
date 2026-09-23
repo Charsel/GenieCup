@@ -4,10 +4,10 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "start": "NODE_ENV=production node --env-file-if-exists=./.env ./dist/server.js",
-    "dev": "NODE_ENV=development tsx watch --tsconfig ./tsconfig.server.json --env-file-if-exists=./.env ./server/server.ts",
+    "start": "NODE_ENV=production node ./dist/server.js",
+    "dev": "NODE_ENV=development tsx watch --tsconfig ./tsconfig.server.json ./server/server.ts",
     "build:client": "tsc -b tsconfig.client.json && vite build --config client/vite.config.ts",
-    "build:server": "tsc -b tsconfig.server.json && tsdown -c tsdown.server.config.ts",
+    "build:server": "tsc -b tsconfig.server.json && esbuild server/server.ts --bundle --platform=node --format=esm --packages=external --outfile=dist/server.js",
     "build": "npm run build:server && npm run build:client",
     "typecheck": "tsc -b tsconfig.server.json && tsc -b tsconfig.client.json",
     "lint": "eslint .",
@@ -18,8 +18,8 @@
     "test": "vitest run",
     "clean": "rm -rf client/dist dist build node_modules",
     "postinstall": "npm run typegen",
-    "prebuild": "npm run sync && npm run typegen -- --wait",
-    "predev": "npm run sync && npm run typegen",
+    "prebuild": "npm run sync",
+    "predev": "npm run sync",
     "sync": "appkit plugin sync --write --silent",
     "typegen": "appkit generate-types",
     "setup": "appkit setup --write"
@@ -32,11 +32,16 @@
     "@databricks/appkit": "0.57.0",
     "@databricks/appkit-ui": "0.57.0",
     "@databricks/sdk-experimental": "0.17.0",
+    "@deck.gl/core": "^9.1.4",
+    "@deck.gl/geo-layers": "^9.1.4",
+    "@deck.gl/layers": "^9.1.4",
+    "@deck.gl/react": "^9.1.4",
     "@types/leaflet": "^1.9.22",
     "clsx": "2.1.1",
     "embla-carousel-react": "8.6.0",
     "leaflet": "^1.9.4",
     "lucide-react": "0.546.0",
+    "maplibre-gl": "^4.7.1",
     "next-themes": "0.4.6",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -73,12 +78,14 @@
     "tsx": "4.20.6",
     "typescript": "5.9.3",
     "typescript-eslint": "8.48.0",
-    "vite": "npm:rolldown-vite@7.1.14",
+    "vite": "^6.2.0",
     "vitest": "4.1.9"
   },
   "overrides": {
-    "vite": "npm:rolldown-vite@7.1.14",
     "@opentelemetry/core": "2.8.0",
     "systeminformation": "5.31.7"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "^1.2.9"
   }
 }
