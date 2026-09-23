@@ -4,6 +4,8 @@ bundle:
 variables:
   sql_warehouse_id:
     description: SQL Warehouse ID
+  genie_space_id:
+    description: Genie space ID (PLU Reglement - Q&A)
 
 resources:
   apps:
@@ -15,9 +17,11 @@ resources:
       # Start the app automatically on deploy.
       lifecycle:
         started: true
-      # Uncomment to enable on behalf of user API scopes. Available scopes: sql, dashboards.genie, files.files, serving.serving-endpoints
-      # user_api_scopes:
-      #   - sql
+      # On-behalf-of-user scopes: the genie plugin calls the Genie space as the
+      # signed-in user (its SQL runs on the warehouse with the user's grants).
+      user_api_scopes:
+        - sql
+        - dashboards.genie
 
       # The resources which this app has access to.
       resources:
@@ -25,6 +29,11 @@ resources:
           sql_warehouse:
             id: ${var.sql_warehouse_id}
             permission: CAN_USE
+        - name: genie-space
+          genie_space:
+            name: "PLU Reglement - Q&A"
+            space_id: ${var.genie_space_id}
+            permission: CAN_RUN
 
 targets:
   default:
@@ -34,3 +43,4 @@ targets:
 
     variables:
       sql_warehouse_id: 813f5c9517aee0df
+      genie_space_id: 01f1b74de1e017db858e23e4b1db2bfe

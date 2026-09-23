@@ -11,7 +11,7 @@ import {
   TabsContent,
   Badge,
 } from '@databricks/appkit-ui/react';
-import { Building2, Sparkles, CheckCircle2, AlertTriangle, Eye } from 'lucide-react';
+import { Building2, Sparkles, CheckCircle2, AlertTriangle, Eye, Leaf } from 'lucide-react';
 import type { BuildingRow } from './DeckMap3D';
 import { getBuildingAttributes, isPassoireThermique } from '../lib/demoAttributes';
 
@@ -161,6 +161,15 @@ export function ParcelSheet({
                   <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
                   <span>Passoire thermique (DPE {attrs.dpe_classe}) : rénovation globale ou mutation recommandée</span>
                 </div>
+              )}
+              {isPassoireThermique(attrs.dpe_classe) && (
+                <p className="mt-1.5 flex items-start gap-1.5 text-[10px] leading-snug text-[#7fb89f]">
+                  <Leaf className="mt-px h-3 w-3 flex-shrink-0" />
+                  <span>
+                    Loi Climat &amp; Résilience : logements classés G interdits à la location depuis 2025, F en 2028,
+                    E en 2034. Coupler la surélévation à la rénovation finance la sortie du statut de passoire.
+                  </span>
+                </p>
               )}
             </div>
           </TabsContent>

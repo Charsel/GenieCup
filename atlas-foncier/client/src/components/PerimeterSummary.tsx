@@ -1,4 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent, Badge, useAnalyticsQuery } from '@databricks/appkit-ui/react';
+import { RseImpact } from './RseImpact';
 
 export function PerimeterSummary({
   onSelectBuildingId,
@@ -120,6 +121,8 @@ export function PerimeterSummary({
             ))}
           </div>
         </div>
+
+        <RseImpact residM2={totalResidM2} />
 
         {/* Unity Catalog Source Badges */}
         <div className="border-t border-[#2c3142] pt-2 space-y-1">

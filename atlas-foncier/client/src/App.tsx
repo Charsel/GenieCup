@@ -5,14 +5,35 @@ import { AssistantChat } from './components/AssistantChat';
 import { PerimeterSummary } from './components/PerimeterSummary';
 import { ParcelSheet } from './components/ParcelSheet';
 import { IntroGlobe } from './components/IntroGlobe';
+import { GreenItBadge } from './components/RseImpact';
 import { HERO_BUILDINGS, getBuildingAttributes } from './lib/demoAttributes';
 import { Search, RotateCcw, Building2 } from 'lucide-react';
+
+const INTRO_SEEN_KEY = 'atlas-intro-seen';
+
+/** Eco-design: play the intro once per session, and never when the OS asks for reduced motion. */
+function shouldPlayIntro(): boolean {
+  try {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    return sessionStorage.getItem(INTRO_SEEN_KEY) !== '1';
+  } catch {
+    return true;
+  }
+}
+
+function markIntroSeen() {
+  try {
+    sessionStorage.setItem(INTRO_SEEN_KEY, '1');
+  } catch {
+    // Storage unavailable (private mode…): the intro will simply replay.
+  }
+}
 
 export default function App() {
   const [layer, setLayer] = useState<MapLayerKey>('usage');
   const [selected, setSelected] = useState<BuildingRow | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(shouldPlayIntro);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -70,7 +91,14 @@ export default function App() {
 
   return (
     <div className="flex h-screen flex-col bg-[#0d0f15] text-[#eceef5] select-none">
-      {showIntro && <IntroGlobe onComplete={() => setShowIntro(false)} />}
+      {showIntro && (
+        <IntroGlobe
+          onComplete={() => {
+            markIntroSeen();
+            setShowIntro(false);
+          }}
+        />
+      )}
 
       {/* Top Header Bar */}
       <header className="flex h-14 items-center gap-4 border-b border-[#2c3142] bg-[#141720]/95 px-4 backdrop-blur-md md:px-6">
@@ -148,6 +176,8 @@ export default function App() {
             </div>
           )}
         </div>
+
+        <GreenItBadge />
 
         <Badge variant="outline" className="border-[#3a4054] bg-[#1b1f2c] text-[11px] text-[#ff7a5c]">
           3D Deck.gl + Unity Catalog
