@@ -37,39 +37,40 @@ its exact colors/spacing/copy, not its markup. It shows:
 - Always pass `--profile dbc-1006` explicitly to every `databricks` CLI
   command (each shell command runs in its own session, so `export`-ing the
   profile in one command does not carry over to the next).
-- **This looks like a shared/hackathon workspace.** The `workspace` catalog
-  already has schemas owned by other people (e.g. `workspace.landing`,
-  `workspace.metric_views_lab`, owned by `verniermichel36@gmail.com`) —
-  leave those alone. Create project resources under their own
-  catalog/schema, not inside `workspace`.
+- **This is a shared/hackathon workspace — there is no separate project
+  catalog.** Everything lives under the single `workspace` catalog, alongside
+  other teams' schemas. Raw source files land in `workspace.landing.<source>`
+  volumes (already created by teammates: `workspace.landing.cadastre`,
+  `workspace.landing.bdnb`, `workspace.landing.plu`, owned by
+  `nico.ancey@gmail.com` / `verniermichel36@gmail.com`). Processed tables go
+  in `workspace.<source>` schemas (e.g. `workspace.cadastre`, `workspace.bdnb`),
+  and joined tables/views for the app and agents go in `workspace.gold`. This
+  is the real, confirmed convention — **use `workspace.<source>`, not a
+  `foncier` catalog** (that was an earlier guess from the mockup's mock data,
+  now superseded). Other people are actively creating schemas here too (a
+  `workspace.silver` schema appeared mid-session, not ours) — check
+  `databricks schemas list workspace --profile dbc-1006` before assuming
+  what exists.
 
 ## Data status (as of 2026-09-23)
 
 | Source | Status |
 |---|---|
-| Cadastre | ✅ Ready |
-| BDNB (Base Nationale des Bâtiments) | 🔄 Ingestion ongoing — don't assume it's queryable yet, check before building on it |
-| PLU (Plan Local d'Urbanisme) documents / vector DB | ❌ Not started — needs sourcing + indexing |
-
-As of this check, the `dbc-1006` workspace has **no project-specific catalog
-and no deployed app yet** — this is a greenfield build. Confirm current
-state with `databricks catalogs list --profile dbc-1006` before assuming
-anything above is stale.
+| Cadastre | ✅ Done — `workspace.cadastre.batiments` (110,562 building footprints, all 20 Paris arrondissements), ingested from `workspace.landing.cadastre/cadastre-75-batiments.geojson` (newline-delimited GeoJSON, one Feature per line — not a FeatureCollection) |
+| BDNB (Base Nationale des Bâtiments) | 🔄 Ingestion ongoing elsewhere — `workspace.landing.bdnb` volume exists but is still empty; `workspace.bdnb` schema is created and ready to receive it |
+| PLU (Plan Local d'Urbanisme) | 🔄 `workspace.landing.plu/plu_chunks_paris.parquet` already landed (looks pre-chunked for RAG) — not yet indexed in Vector Search, and zoning attribute data (height caps, coverage %) not yet in table form |
+| `workspace.gold.batiments_plu` view | ✅ Created — stable 13-column contract (`batiment_groupe_id`, `hauteur_m`, `dpe_classe`, `plafond_hauteur_m`, `sdp_residuelle_m2`, …). Geometry/commune columns are real; BDNB/PLU-derived columns are `NULL` placeholders until those sources land — swap them for real joins then, don't change the column names |
 
 ## Planned architecture
 
-Not yet provisioned — confirm naming with the team before creating anything.
-The mockup's mock data implies this shape, treat it as a *starting proposal*:
-
-- **Unity Catalog**: a project catalog (name TBD, mockup mock data uses
-  `foncier`) with schemas `bdnb`, `cadastre`, `plu`, and a `gold` schema
-  holding a joined table (mockup calls it `gold.batiments_plu`) that backs
-  the NL→SQL assistant.
-- **Vector Search** index over the PLU documents, for RAG-based zoning-rule
-  lookup.
+- **Unity Catalog** (confirmed): `workspace.landing.*` (raw volumes) →
+  `workspace.cadastre` / `workspace.bdnb` (parsed per-source tables) →
+  `workspace.gold.batiments_plu` (joined view backing the NL→SQL assistant).
+- **Vector Search** index over `workspace.landing.plu/plu_chunks_paris.parquet`
+  for RAG-based zoning-rule lookup (chunks already exist, index does not yet).
 - **Agent Bricks Supervisor Agent** orchestrating two sub-agents behind the
-  "Assistant territoire" chat: a text-to-SQL/analytics agent over the
-  BDNB+cadastre gold table, and a RAG agent over the PLU vector index.
+  "Assistant territoire" chat: a text-to-SQL/analytics agent over
+  `workspace.gold.batiments_plu`, and a RAG agent over the PLU vector index.
 - **Model Serving** endpoint for the "Génération IA" tab's image rendering.
 - **Databricks App** (AppKit — TypeScript/React) as the front end,
   reimplementing the mockup with real data.

@@ -2,23 +2,42 @@
 
 *23 septembre 2026 · Raphaël Gallet*
 
-Cinq chantiers peuvent avancer en parallèle : le cadastre est prêt, la BDNB
-est en cours d'ingestion, et rien n'est encore provisionné dans le workspace
-`dbc-1006` (pas de catalogue projet, pas d'app déployée).
+Cinq chantiers peuvent avancer en parallèle. Le cadastre est ingéré
+(`workspace.cadastre.batiments`, 110 562 bâtiments) avec une vue gold au
+schéma stable prête pour les autres chantiers ; la BDNB est en cours
+d'ingestion ailleurs ; le reste (PLU, agents, génération IA, front) démarre
+de zéro dans le workspace `dbc-1006`.
 
-## Chantier 1 — Fondations données (Unity Catalog)
+## Chantier 1 — Fondations données (Unity Catalog) ✅ cadastre fait
 
 **Objectif** : ingérer BDNB et cadastre dans Unity Catalog, avec une table
-gold jointe (ex. `gold.batiments_plu`) qui expose hauteur, plafond PLU, DPE
-et SDP résiduelle par bâtiment — c'est la table que l'assistant NL→SQL et le
-front interrogent.
+gold jointe (`workspace.gold.batiments_plu`) qui expose hauteur, plafond PLU,
+DPE et SDP résiduelle par bâtiment — c'est la table que l'assistant NL→SQL et
+le front interrogent.
 
-**Départ** : cadastre prêt, BDNB en cours d'ingestion.
+**Fait** :
+- `workspace.cadastre.batiments` — 110 562 bâtiments (empreintes), les 20
+  arrondissements de Paris, depuis `workspace.landing.cadastre` (GeoJSON en
+  ndjson, une Feature par ligne).
+- `workspace.bdnb` — schéma créé, vide (ingestion BDNB toujours en cours
+  ailleurs).
+- `workspace.gold.batiments_plu` — vue au contrat stable (13 colonnes) :
+  colonnes géométrie/commune réelles, colonnes issues de BDNB/PLU
+  (`hauteur_m`, `dpe_classe`, `plafond_hauteur_m`, `sdp_residuelle_m2`, …) en
+  `NULL` en attendant ces sources.
 
-**Livrable** : tables Unity Catalog interrogeables, schéma stabilisé.
+**Convention confirmée** : catalogue unique `workspace` (pas de catalogue
+`foncier` séparé — c'était une hypothèse initiale, l'espace de travail est
+partagé). `workspace.landing.<source>` pour le brut, `workspace.<source>`
+pour le traité, `workspace.gold` pour les tables/vues jointes.
+
+**Reste à faire** : brancher `workspace.bdnb` dans la vue gold dès que
+l'ingestion BDNB est terminée (remplacer les colonnes `NULL` par le vrai
+join, sans changer les noms de colonnes).
 
 **Bloque** : Chantier 3 (agent SQL) et la bascule du Chantier 5 vers des
-données réelles.
+données réelles — mais les deux peuvent déjà commencer contre le schéma
+stable de `workspace.gold.batiments_plu`.
 
 ## Chantier 2 — PLU et Vector Search
 
@@ -63,25 +82,39 @@ isolément avec des prompts de démo.
 **Livrable** : endpoint testable qui retourne une image à partir d'un prompt
 texte.
 
-## Chantier 5 — App front-end (AppKit)
+## Chantier 5 — App front-end (AppKit) ✅ premier build fait
 
 **Objectif** : reconstruire l'app à partir de la maquette
 (`maquettes/Atlas Foncier · prototype interactif-html/Main.dc.html`) en
 AppKit (TypeScript/React) : écran carte, fiche parcelle à 4 onglets, chat
 « Assistant territoire ».
 
-**Départ** : peut démarrer immédiatement avec les données de démo déjà
-présentes dans le mockup, sans attendre les autres chantiers.
+**Fait** — app AppKit scaffoldée dans `atlas-foncier/` :
+- Carte réelle (react-leaflet + OpenStreetMap, pas de clé requise) affichant
+  les 960 vrais bâtiments du périmètre de démo (Paris 13e, Chevaleret –
+  Tolbiac) depuis `workspace.gold.batiments_plu`, avec bascule de couche
+  Usages / DPE / Potentiel.
+- Panneau KPI avec le vrai compte de bâtiments ; mutables/m² à créer affichés
+  honnêtement en attente (BDNB requis).
+- Fiche parcelle à 4 onglets (BDNB, PLU, Capacité, Génération IA) : 3
+  bâtiments réels du périmètre portent des attributs d'exemple étiquetés
+  « données de démonstration » ; les 957 autres affichent un état vide
+  honnête (« pas encore de données pour ce bâtiment »).
+- Chat « Assistant territoire » en mode démo (logique NL→SQL simulée sur les
+  3 parcelles d'exemple, SQL généré affiché), clairement marqué comme
+  provisoire en attendant le Supervisor Agent (Chantier 3).
+- `databricks apps validate` passe (lint, typecheck, build, tests).
 
-**Livrable** : Databricks App déployée, d'abord avec données de démo puis
-branchée sur les vrais services au fur et à mesure (Chantier 1 pour les
-données, Chantier 3 pour le chat, Chantier 4 pour la génération).
+**Reste à faire** : déployer (demande confirmation avant tout déploiement),
+puis brancher progressivement les vraies données/agents au fur et à mesure
+des autres chantiers (Chantier 1 pour BDNB, Chantier 3 pour le chat,
+Chantier 4 pour la génération).
 
 ## Dépendances et séquencement
 
 | Chantier | Dépend de | Démarrage |
 | --- | --- | --- |
-| 1. Fondations données | — | Cadastre immédiat, BDNB déjà en cours |
+| 1. Fondations données | — | Cadastre fait, schéma gold stable ; BDNB déjà en cours |
 | 2. PLU & Vector Search | Sourcing des documents PLU | Immédiat, en parallèle |
 | 3. Agents (Supervisor) | 1 pour l'agent SQL, 2 pour l'agent RAG | Archi/prompt immédiats, branchement final après 1 et 2 |
 | 4. Génération IA | — | Immédiat, indépendant |
