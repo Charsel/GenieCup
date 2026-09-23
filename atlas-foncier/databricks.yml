@@ -22,6 +22,8 @@ resources:
       user_api_scopes:
         - sql
         - dashboards.genie
+        # The Genie conversation API now checks the `genie` scope.
+        - genie
 
       # The resources which this app has access to.
       resources:
