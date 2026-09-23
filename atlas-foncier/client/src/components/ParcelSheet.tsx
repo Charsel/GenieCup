@@ -98,7 +98,11 @@ export function ParcelSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mt-4">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as 'bdnb' | 'plu' | 'cap' | 'gen')}
+          className="mt-4"
+        >
           <TabsList className="grid w-full grid-cols-4 bg-[#1b1f2c] p-1">
             <TabsTrigger value="bdnb" className="text-xs data-[state=active]:bg-[#c8553d] data-[state=active]:text-white">
               BDNB

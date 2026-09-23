@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import DeckGL from '@deck.gl/react';
-import { GeoJsonLayer } from '@deck.gl/layers';
+import { GeoJsonLayer, BitmapLayer } from '@deck.gl/layers';
+import { TileLayer } from '@deck.gl/geo-layers';
 import { LightingEffect, AmbientLight, DirectionalLight } from '@deck.gl/core';
 import type { Feature, Geometry } from 'geojson';
 import { useAnalyticsQuery } from '@databricks/appkit-ui/react';
@@ -129,6 +130,26 @@ export function DeckMap3D({
   // DeckGL Layers definition
   const deckLayers = useMemo(() => {
     const layersList = [];
+
+    // 0. Basemap (raster tiles, rendered as a deck.gl layer so it shares the
+    // same 3D perspective/camera as the buildings — no separate map library needed)
+    layersList.push(
+      new TileLayer({
+        id: 'basemap-tiles',
+        data: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        minZoom: 0,
+        maxZoom: 19,
+        tileSize: 256,
+        renderSubLayers: (props: any) => {
+          const { boundingBox } = props.tile;
+          return new BitmapLayer(props, {
+            data: undefined,
+            image: props.data,
+            bounds: [boundingBox[0][0], boundingBox[0][1], boundingBox[1][0], boundingBox[1][1]],
+          });
+        },
+      })
+    );
 
     // 1. Base 3D Buildings Layer
     layersList.push(
