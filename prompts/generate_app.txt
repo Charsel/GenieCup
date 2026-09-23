@@ -1,0 +1,224 @@
+Build a Production-Ready Databricks App
+
+1. TECH REQUIREMENTS
+
+I want to build a production-quality Databricks App with a modern web frontend and a Python backend.
+
+Application Architecture
+
+Use the following architecture:
+
+Databricks Apps as the application hosting environment.
+Frontend: choose between Vanilla JavaScript/HTML/CSS and Vue.js based on the complexity of the required UI.
+Use Vanilla JS for relatively simple interfaces.
+Use Vue.js when the application requires richer state management, reusable components, dynamic views, maps, complex interactions, or sophisticated user workflows.
+Backend: Python with FastAPI.
+Keep the frontend and backend clearly separated.
+Design the application so that the backend acts as the main orchestration and security layer for data and AI access.
+Prefer simple, maintainable architecture over unnecessary complexity.
+
+
+The application must include:
+Architecture Page
+A clear and visually appealing architecture/schema showing the overall application structure and navigation.
+Ability to switch between light and dark mode
+Databricks Resources Page
+A dedicated page listing all Databricks resources accessible to the application/user.
+Each resource must be displayed in its own well-designed card.
+Cards should provide relevant resource information and, where applicable, quick access to the resource.
+Application Screens Documentation
+A clear description of every screen/page in the application.
+For each screen, explain its purpose, main functionality, and role within the overall application workflow.
+Git Configuration
+Include a .gitignore file that excludes:
+*.md
+*.docx
+*.pptx
+Fully Scripted Deployment & Migration
+The entire deployment and migration process must be fully scripted and automated.
+Scripts must avoid workspace-specific hardcoding wherever possible.
+It must be easy to deploy/migrate the application to a different Databricks workspace by changing only the required configuration parameters.
+Include all necessary configuration, initialization, deployment, and migration scripts required to reproduce the application in another workspace.
+Workspace-Relative Resource Links
+All links displayed on the Databricks Resources page must be relative/dynamically generated and must not contain hardcoded workspace URLs, hostnames, or workspace IDs.
+Resource URLs must be constructed dynamically based on the current Databricks workspace/environment in which the application is deployed.
+The application must therefore work correctly after being redeployed to another Databricks workspace without requiring manual changes to resource links.
+No environment-specific URLs should be stored directly in the source code.
+
+
+Databricks Data Architecture
+
+The application must be designed around Databricks-native data capabilities.
+
+Use:
+
+Unity Catalog for data governance.
+Lakebase as the application's operational database where appropriate.
+Lakebase Search when it provides meaningful value for search or retrieval use cases.
+Delta tables for analytical or persistent datasets where appropriate.
+Volumes for files, images, documents, or other unstructured assets.
+Sync Tables where appropriate to synchronize data between Lakebase and analytical/Databricks workloads.
+Design and create the required:
+
+Catalog
+Schemas
+Tables
+Lakebase tables
+Volumes
+Search indexes, when useful
+Relationships between operational and analytical data
+Do not merely create empty structures. Populate the data model with realistic sample/demo data relevant to the application's functional scope.
+
+The data model should be realistic enough to demonstrate the complete application workflow.
+
+AI Architecture & Governance
+
+All AI/LLM interactions must go through Unity AI Gateway.
+
+No application component should directly call an LLM provider when the request can be routed through Unity AI Gateway.
+
+Implement appropriate AI governance, including:
+
+Model routing
+Fallback models
+Rate limiting where appropriate
+Guardrails
+Input/output validation
+Protection against prompt injection where relevant
+PII protection/redaction where relevant
+Content safety controls
+Token/cost/budget tracking
+Observability and logging
+Model usage monitoring
+Appropriate error handling
+Use custom guardrails when application-specific risks justify them.
+
+Choose models and routing strategies based on the actual task rather than using a single model for everything.
+
+Where useful, support:
+
+LLM-based structured extraction
+Natural-language search
+RAG
+Classification
+Summarization
+Vision/multimodal capabilities
+Agentic workflows
+Genie / Natural-Language Analytics
+
+Where useful, integrate Databricks Genie / Genie Agent capabilities.
+
+Use Genie when it provides a better experience for asking natural-language questions over structured business data rather than unnecessarily implementing an LLM-based query layer from scratch.
+
+The user should be able to interact with the application's data using natural language where this adds meaningful value.
+
+Search & Retrieval
+
+Design search according to the nature of the data.
+
+Support, where relevant:
+
+Keyword search
+Semantic search
+Natural-language search
+Hybrid search
+Metadata filtering
+Similarity search
+Search over previous projects/documents/images where technically appropriate
+Use Lakebase Search or other Databricks-native search capabilities when they provide a good fit.
+
+UX / UI
+
+Build a modern, professional UI suitable for a real business application.
+
+The UI should:
+
+Be responsive.
+Be intuitive for non-technical users.
+Clearly separate major workflows.
+Provide useful loading, empty, error, and success states.
+Avoid unnecessary complexity.
+Provide contextual AI assistance where useful.
+Make important information visually easy to understand.
+Use appropriate visualizations, maps, cards, tables, timelines, filters, and search interfaces depending on the use case.
+Do not build a generic dashboard if the functional scope calls for a workflow-oriented application.
+
+Security
+
+Follow Databricks and enterprise security best practices.
+
+In particular:
+
+Do not hard-code credentials, tokens, secrets, or API keys.
+Use Databricks-native authentication and authorization mechanisms.
+Respect Unity Catalog permissions.
+Apply least-privilege principles.
+Keep sensitive configuration server-side.
+Never expose backend credentials or privileged APIs to the browser.
+Validate and sanitize user inputs.
+Protect AI endpoints against misuse and prompt injection.
+Ensure users can only access data they are authorized to access.
+Observability
+
+The application should provide sufficient observability to understand:
+
+User actions
+Backend errors
+AI requests
+Model selection/routing
+Token usage
+AI costs/budget consumption
+Latency
+Search activity
+Important application events
+Where possible, leverage Databricks-native monitoring and logging capabilities.
+
+Application Data
+
+Create realistic demo data for the complete functional scope.
+
+The demo dataset should include enough records to demonstrate:
+
+Search
+Filtering
+AI interactions
+Relationships between entities
+Historical information
+Different user scenarios
+Edge cases
+Empty/error states
+Do not use meaningless placeholder data such as "test1", "test2", etc.
+
+Implementation Expectations
+
+The implementation should be:
+
+Modular
+Maintainable
+Production-oriented
+Well documented
+Easy to extend
+Clearly structured
+Provide:
+
+Application architecture
+Data model
+Unity Catalog structure
+Lakebase design
+Volume structure
+Search architecture
+AI architecture
+Unity AI Gateway configuration
+Guardrails
+Backend API structure
+Frontend structure
+Sample/demo data
+Main user workflows
+Deployment/configuration requirements
+Error handling strategy
+Security considerations
+Before implementing, identify missing pieces in the functional scope and propose additional capabilities that would make the application more useful, while keeping the scope realistic.
+
+2.  APP-SPECIFIC FUNCTIONAL SCOPE
+
+A COMPLETER
